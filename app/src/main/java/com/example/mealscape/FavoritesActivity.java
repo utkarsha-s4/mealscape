@@ -1,10 +1,14 @@
 package com.example.mealscape;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,30 +24,39 @@ public class FavoritesActivity extends AppCompatActivity {
         setContentView(R.layout.activity_favorites);
 
         favoritesListView = findViewById(R.id.favoritesListView);
-
-        // Initialize the RecipeAdapter with the context, layout, and an empty list
         recipeAdapter = new RecipeAdapter(this, R.layout.recipe_item, new ArrayList<>());
         favoritesListView.setAdapter(recipeAdapter);
-
-        // Initialize Room database instance
         appDatabase = AppDatabase.getInstance(this);
-
-        // Load favorite recipes from Room DB
         loadFavoriteRecipes();
+
+        favoritesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, android.view.View view, int position, long id) {
+                Meal selectedRecipe = (Meal) recipeAdapter.getItem(position);
+                if (selectedRecipe != null) {
+                    Log.d("FavoritesActivity", "Selected recipe: " + selectedRecipe.getStrMeal());
+                    Intent intent = new Intent(FavoritesActivity.this, MainActivity.class); // Or RecipeDetailActivity
+                    intent.putExtra("selected_recipe", (Serializable) selectedRecipe); // Cast to Serializable
+                    startActivity(intent);
+                } else {
+                    Log.e("FavoritesActivity", "Selected recipe is null at position: " + position);
+                }
+            }
+        });
     }
 
     private void loadFavoriteRecipes() {
-        // Execute database fetch in a background thread
         new Thread(() -> {
-            // Fetch the favorite recipes from the database
-            List<Meal> favoriteRecipes = appDatabase.recipeDao().getAllFavorites();
-
-            // Switch back to the main thread to update the UI
-            runOnUiThread(() -> {
-                // Clear the adapter data and add the new favorites
-                recipeAdapter.clear();
-                recipeAdapter.addAll(favoriteRecipes); // You might need to implement this method in RecipeAdapter
-            });
+            try {
+                List<Meal> favoriteRecipes = appDatabase.recipeDao().getAllFavorites();
+                runOnUiThread(() -> {
+                    recipeAdapter.clear();
+                    recipeAdapter.addAll(favoriteRecipes);
+                    Log.d("FavoritesActivity", "Loaded " + favoriteRecipes.size() + " favorite recipes");
+                });
+            } catch (Exception e) {
+                Log.e("FavoritesActivity", "Error loading favorites: ", e);
+            }
         }).start();
     }
 }

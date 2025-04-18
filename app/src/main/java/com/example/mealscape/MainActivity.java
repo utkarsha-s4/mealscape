@@ -2,7 +2,7 @@ package com.example.mealscape;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.util.Log; // Import Log
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -46,6 +46,21 @@ public class MainActivity extends AppCompatActivity {
         saveButton = findViewById(R.id.saveButton);
         viewFavoritesButton = findViewById(R.id.viewFavoritesButton);
         shareButton = findViewById(R.id.shareButton);
+
+        // Check if a recipe was passed from FavoritesActivity
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("selected_recipe")) {
+            Meal selectedRecipe = (Meal) intent.getSerializableExtra("selected_recipe");
+            if (selectedRecipe != null) {
+                Log.d("MainActivity", "Displaying recipe from Favorites: " + selectedRecipe.getStrMeal());
+                showMealDetails(selectedRecipe);
+                currentMeal = selectedRecipe; //Set current meal so it can be saved/shared from MainActivity
+                return; //Don't proceed to default search setup
+            } else {
+                Log.e("MainActivity", "Selected recipe is null in Intent");
+            }
+        }
+
 
         // Search Logic
         searchButton.setOnClickListener(v -> {

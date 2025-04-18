@@ -4,8 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import java.io.Serializable;
+
 @Entity(tableName = "favorite_recipes")
-public class Meal {
+public class Meal implements Serializable { // Added implements Serializable
 
     @PrimaryKey
     @NonNull
@@ -94,4 +96,10 @@ public class Meal {
     public void setStrSource(String strSource) {
         this.strSource = strSource;
     }
+
+    // Add these methods to easily access recipe data in MainActivity
+    public String getName() { return strMeal; }
+    public String getIngredients() { return ""; } // Needs actual ingredients data
+    public String getInstructions() { return strInstructions; }
+    public String getImageUrl() { return strMealThumb; }
 }
